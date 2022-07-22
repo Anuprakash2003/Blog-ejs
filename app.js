@@ -33,8 +33,10 @@ app.get("/compose", function(req, res) {
 });
 
 app.post("/compose", function(req, res) {
-    let abc = req.body.text1;
-    console.log(abc);
+    var post ={
+        title:req.body.postTitle,
+    content:req.body.postBody};
+    
 });
 app.listen(3100, function(req, res) {
     console.log("App started at port 3100");

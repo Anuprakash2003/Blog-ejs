@@ -14,5 +14,13 @@
     "lodash": "^4.17.11",
     "nodemon": "^2.0.19"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Anuprakash2003/Blog-ejs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Anuprakash2003/Blog-ejs/issues"
+  },
+  "homepage": "https://github.com/Anuprakash2003/Blog-ejs#readme",
   "description": ""
 }
