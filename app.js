@@ -1,21 +1,4 @@
 //jshint esversion:6
-const mongoose = require('mongoose');
-
-
-//creating a connection with db
-mongoose.connect("mongodb://localhost:27017/blogDB", {useNewUrlParser: true});
-
-//creating schema
-const postSchema = {
-
-    title: String,
-   
-    content: String
-   
-   };
-
-//creating model
-const Post = mongoose.model("Post", postSchema);
 
 
 
@@ -31,21 +14,74 @@ const aboutContent =
 const contactContent =
     "Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc sed augue lacus. Interdum posuere lorem ipsum dolor sit amet consectetur adipiscing elit. Pulvinar elementum integer enim neque. Ultrices gravida dictum fusce ut placerat orci nulla. Mauris in aliquam sem fringilla ut morbi tincidunt. Tortor posuere ac ut consequat semper viverra nam libero.";
 
+    var today = new Date();
+    var dd = today.getDate();
+    
+    var mm = today.getMonth()+1; 
+    var yyyy = today.getFullYear();
+    if(dd<10) 
+    {
+        dd='0'+dd;
+    } 
+    
+    if(mm<10) 
+    {
+        mm='0'+mm;
+    } 
+    today = dd+'-'+mm+'-'+yyyy;
+    
+
 const app = express();
 
 app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
+app.use(express.static("public"))
 
-app.get("/", function(req, res) {
-    Post.find({}, function(err, posts){
+const mongoose = require('mongoose');
+
+//creating a connection with db
+mongoose.connect("mongodb://localhost:27017/blogDB", {useNewUrlParser: true});
+
+//creating schema
+const journalSchema = new mongoose.Schema({
+
+    title: String,
+    content: String,
+    feedback: String,
+    date:String
+   
+   });
+
+//creating model
+const Journal= mongoose.model("Journal", journalSchema);
+const userSchema ={
+    email :String,
+    password:String,
+    
+   
+
+}
+
+const User = new mongoose.model ("User",userSchema);
+
+app.get("/", function(req, res) {  
+    Journal.find({}, function(err, journals){
         res.render("home", {
           startingContent: homeStartingContent,
-          posts: posts
+          posts: journals
+
           });
       });
 
+});
+
+app.get("/login",function(req,res){
+    res.render("login");
+});
+
+app.get("/register",function(req,res){
+    res.render("register");
 });
 app.get("/about", function(req, res) {
     res.render("about", { name: "about", para1: aboutContent });
@@ -55,44 +91,84 @@ app.get("/contact", function(req, res) {
 });
 
 app.get("/compose", function(req, res) {
-    res.render("compose");
+   
+    res.render("compose",{todayDate:today});
 });
 
 
 
 app.post("/compose", function(req, res) {
-   
-    const post = new Post({
-
-        title: req.body.postTitle,
-     
-        content: req.body.postBody
-       
+    const journ = new Journal({
+        title: req.body.postTitle, 
+        content: req.body.postBody,
+        feedback:req.body.feedBack,
+        date:today
       });
-      post.save(function(err){
+      journ.save(function(err){
         if (!err){
             res.redirect("/");
         }
       });
 
 });
-
-
-
-
+ 
 app.get("/posts/:postId", function(req, res){
 
     const requestedPostId = req.params.postId;
     
     
-      Post.findOne({_id: requestedPostId}, function(err, post){
+      Journal.findOne({_id: requestedPostId}, function(err, jour){
         res.render("post", {
-          title: post.title,
-          content: post.content
+          title: jour.title,
+          content: jour.content
         });
       });
     
     });
+
+
+
+app.post("/register",function(req,res){
+    const newUser = new User({
+        email:req.body.username,
+        password:req.body.password
+       
+    });
+
+    newUser.save(function(err){
+        if(err){
+            console.log(err);
+        }
+        else{
+            res.render("login");
+        }
+    });
+});
+
+app.post("/login",function(req,res){
+    console.log("hello");
+    const username = req.body.username;
+    const password = req.body.password;
+
+    User.findOne({email:username},function(err,foundUser){
+        console.log("success");
+        if(err){
+            console.log(err);
+        }
+        else{
+            if(foundUser){
+                if(foundUser.password === password){
+                   res.redirect("/compose");
+                }
+            }
+        }
+    });
+});
+
+
+
+
+
     
 app.listen(3100, function(req, res) {
     console.log("App started at port 3100");
